@@ -1,6 +1,6 @@
 environment: staging
-replicaCount: 1
-message: Staging baseline managed by Git and Argo CD.
+replicaCount: 2
+message: "Staging revision 2: deployed by a Git commit through Argo CD."
 ingress:
   host: demo.talos.test
   path: /staging
