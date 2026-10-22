@@ -1,0 +1,4 @@
+name: hello
+chartPath: gitops/charts/hello
+valuesFile: ../../environments/production/hello/values.yaml
+

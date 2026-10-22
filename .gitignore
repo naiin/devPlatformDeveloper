@@ -1,0 +1,11 @@
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+.runtime/
+.cache/
+vms/
+generated/
+__pycache__/
+

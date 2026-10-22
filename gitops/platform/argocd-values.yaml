@@ -1,0 +1,57 @@
+global:
+  domain: demo.talos.test
+  image:
+    tag: v3.5.6
+configs:
+  cm:
+    url: http://demo.talos.test/argocd
+    timeout.reconciliation: 30s
+    timeout.reconciliation.jitter: 5s
+    application.resourceTrackingMethod: annotation
+  params:
+    server.insecure: true
+    server.rootpath: /argocd
+    server.basehref: /argocd
+    controller.self.heal.timeout.seconds: "10"
+  rbac:
+    policy.default: role:readonly
+dex:
+  enabled: false
+notifications:
+  enabled: false
+controller:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 768Mi
+server:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+repoServer:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+applicationSet:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+redis:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
+

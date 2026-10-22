@@ -1,0 +1,58 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: staging
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  goTemplate: true
+  goTemplateOptions: [missingkey=error]
+  generators:
+    - git:
+        repoURL: https://github.com/naiin/devPlatformDeveloper.git
+        revision: main
+        requeueAfterSeconds: 30
+        files:
+          - path: gitops/environments/staging/*/app.yaml
+  template:
+    metadata:
+      name: 'staging-{{.name}}'
+      labels:
+        app.kubernetes.io/part-of: devplatform-gitops
+        devplatform.io/environment: staging
+    spec:
+      project: staging
+      source:
+        repoURL: https://github.com/naiin/devPlatformDeveloper.git
+        targetRevision: main
+        path: '{{.chartPath}}'
+        helm:
+          releaseName: '{{.name}}'
+          valueFiles:
+            - '{{.valuesFile}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: 'staging-{{.name}}'
+      syncPolicy:
+        automated:
+          enabled: true
+          prune: true
+          selfHeal: true
+          allowEmpty: false
+        syncOptions:
+          - CreateNamespace=true
+          - ApplyOutOfSyncOnly=true
+        managedNamespaceMetadata:
+          labels:
+            pod-security.kubernetes.io/enforce: restricted
+            devplatform.io/environment: staging
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 1m
+  syncPolicy:
+    preserveResourcesOnDeletion: true
+

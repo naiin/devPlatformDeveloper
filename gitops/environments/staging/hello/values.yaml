@@ -1,0 +1,7 @@
+environment: staging
+replicaCount: 1
+message: Staging baseline managed by Git and Argo CD.
+ingress:
+  host: demo.talos.test
+  path: /staging
+

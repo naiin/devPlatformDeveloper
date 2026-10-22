@@ -1,0 +1,7 @@
+environment: production
+replicaCount: 2
+message: Production baseline; explicit Argo CD sync required.
+ingress:
+  host: demo.talos.test
+  path: /production
+

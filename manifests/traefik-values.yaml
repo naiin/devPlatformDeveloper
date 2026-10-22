@@ -1,0 +1,25 @@
+deployment:
+  replicas: 2
+providers:
+  kubernetesIngress:
+    enabled: true
+    publishedService:
+      enabled: true
+  kubernetesGateway:
+    enabled: false
+ingressClass:
+  enabled: true
+  isDefaultClass: true
+service:
+  spec:
+    type: LoadBalancer
+    externalTrafficPolicy: Cluster
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    memory: 256Mi
+log:
+  level: INFO
+
