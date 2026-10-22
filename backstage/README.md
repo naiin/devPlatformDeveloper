@@ -11,7 +11,7 @@ Create a GitHub App owned by `naiin` using [this prefilled setup page](https://g
 - Disable webhooks (polling is used).
 - Repository permissions: Administration, Contents, Workflows, Pull requests **read/write**; Metadata read.
 - Install on your `naiin` account. Select all repositories if newly generated repositories should become accessible automatically; otherwise add each generated repository to its installation.
-- Generate a client secret and private key. Copy `backstage/github-config.example.yaml` to `generated/backstage-github.yaml`, fill it locally, and run `chmod 600 generated/backstage-github.yaml`.
+- Generate a client secret and private key. Run `python3 scripts/backstage-github-setup.py` to enter the App ID, client ID, hidden client secret and downloaded PEM path; it writes a private local config and restarts the portal. Alternatively, copy `backstage/github-config.example.yaml` to `generated/backstage-github.yaml`, fill it locally, and run `chmod 600 generated/backstage-github.yaml`.
 - Never paste private keys or client secrets into chat or commit them.
 
 Deploy with `python3 scripts/backstage-bootstrap.py --image ghcr.io/naiin/devplatform-backstage@sha256:ACTUAL_DIGEST --github-config generated/backstage-github.yaml`. The script preserves existing database passwords. It stores the App configuration only in a Kubernetes Secret. The credentials mount is loaded after base configuration. No personal CLI token is copied into the portal.
@@ -30,7 +30,7 @@ Production onboarding is deliberately separate: this template activates staging 
 
 ## Operations and limitations
 
-- Bootstrap: `scripts/backstage-bootstrap.py`; remove portal workloads with `scripts/kubectl delete -f gitops/backstage/resources.yaml` only when intentionally retiring the portal. PVCs must be retained separately before namespace deletion.
+- Bootstrap: `scripts/backstage-bootstrap.py`; stop the portal with `scripts/kubectl -n backstage scale deployment/backstage --replicas=0`. This preserves PostgreSQL, its PVC and credentials. Namespace deletion is a separate destructive operation.
 - Database storage survives pod recreation, not a lost VM disk. Back up PostgreSQL before destroying infrastructure.
 - The portal has no Kubernetes API permissions and no mounted service account token. Operator credential preparation is explicit, scoped to the named service, and preserves existing credentials.
 - A failed task can leave a repository or namespace. Retry with a fresh service name after inspecting the task; clean partial resources intentionally. Task execution across GitHub/Kubernetes is not transactional.

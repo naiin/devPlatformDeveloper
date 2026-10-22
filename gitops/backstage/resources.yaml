@@ -143,7 +143,7 @@ spec:
           type: RuntimeDefault
       containers:
       - name: backstage
-        image: devplatform-backstage:1.56.0
+        image: ghcr.io/naiin/devplatformdeveloper-api@sha256:95c640a65fb83dec70bd3ca1e80b0362869e88a3a54b7093ecc5fc91d7fba294
         imagePullPolicy: IfNotPresent
         securityContext:
           allowPrivilegeEscalation: false

@@ -5,6 +5,13 @@ const fs = require('node:fs/promises');
 (async () => {
   const browser = await chromium.launch({ executablePath: '/usr/bin/google-chrome', headless: true, args: ['--no-sandbox'] });
   const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+  let ready = false;
+  for (let attempt = 0; attempt < 90; attempt++) {
+    const response = await page.request.get('http://demo.talos.test/backstage/.backstage/health/v1/readiness');
+    if (response.ok()) { ready = true; break; }
+    await page.waitForTimeout(1000);
+  }
+  if (!ready) throw new Error('Portal did not become ready');
   let identity;
   page.on('response', async response => {
     if (response.url().includes('/auth/guest/refresh') && response.ok()) {
@@ -20,6 +27,9 @@ const fs = require('node:fs/promises');
   await page.screenshot({ path: 'generated/backstage-catalog.png', fullPage: true });
   const text = await page.locator('body').innerText();
   if (!text.includes('platform-api')) throw new Error('Platform catalog component did not render');
+  await page.getByRole('link', { name: 'Create', exact: true }).click();
+  await page.getByText('Create FastAPI Microservice', { exact: true }).waitFor({ timeout: 30000 });
+  await page.screenshot({ path: 'generated/backstage-template.png', fullPage: true });
   if (!identity) throw new Error('Guest identity was not issued');
   const headers = { Authorization: `Bearer ${identity}`, 'Content-Type': 'application/json' };
   const entities = await page.request.get('http://demo.talos.test/backstage/api/catalog/entities', { headers });
