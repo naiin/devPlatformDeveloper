@@ -6,38 +6,6 @@ metadata:
     pod-security.kubernetes.io/enforce: restricted
 ---
 apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: backstage
-  namespace: backstage
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: backstage-onboarding
-rules:
-- apiGroups:
-  - ''
-  resources:
-  - namespaces
-  - secrets
-  verbs:
-  - create
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: backstage-onboarding
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: backstage-onboarding
-subjects:
-- kind: ServiceAccount
-  name: backstage
-  namespace: backstage
----
-apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: backstage-postgres
@@ -166,7 +134,6 @@ spec:
       labels:
         app: backstage
     spec:
-      serviceAccountName: backstage
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
@@ -223,6 +190,7 @@ spec:
         secret:
           secretName: backstage-github
           defaultMode: 288
+      automountServiceAccountToken: false
 ---
 apiVersion: traefik.io/v1alpha1
 kind: Middleware

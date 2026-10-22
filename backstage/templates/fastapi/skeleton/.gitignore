@@ -1,0 +1,19 @@
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+.runtime/
+.cache/
+vms/
+generated/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+junit*.xml
+*.egg-info/
+
+
+# Backstage dependencies/builds are ignored by backstage/.gitignore.

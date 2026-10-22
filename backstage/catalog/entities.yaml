@@ -58,3 +58,25 @@ spec:
   type: cache
   owner: platform-team
   system: devplatform
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: backstage
+  annotations:
+    github.com/project-slug: naiin/devPlatformDeveloper
+spec:
+  type: website
+  lifecycle: experimental
+  owner: platform-team
+  system: devplatform
+  dependsOn: [resource:default/backstage-postgresql]
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: backstage-postgresql
+spec:
+  type: database
+  owner: platform-team
+  system: devplatform
