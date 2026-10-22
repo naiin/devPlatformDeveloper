@@ -1,0 +1,3 @@
+name: platform
+chartPath: gitops/charts/platform
+valuesFile: ../../environments/staging/platform/values.yaml
