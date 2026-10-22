@@ -1,0 +1,4 @@
+name: ${{ values.name }}
+repoURL: https://github.com/naiin/${{ values.name }}.git
+chartPath: gitops/charts/platform
+valuesFile: ../../environments/staging/platform/values.yaml

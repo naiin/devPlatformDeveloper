@@ -1,0 +1,24 @@
+# Copy to generated/backstage-github.yaml (never commit actual credentials).
+# Install the App on naiin, including devPlatformDeveloper and generated repos.
+integrations:
+  github:
+    - host: github.com
+      apps:
+        - appId: REPLACE_APP_ID
+          clientId: REPLACE_CLIENT_ID
+          clientSecret: REPLACE_CLIENT_SECRET
+          webhookSecret: REPLACE_RANDOM_WEBHOOK_SECRET
+          allowedInstallationOwners: [naiin]
+          privateKey: |
+            -----BEGIN RSA PRIVATE KEY-----
+            REPLACE_KEY
+            -----END RSA PRIVATE KEY-----
+auth:
+  providers:
+    github:
+      production:
+        clientId: REPLACE_CLIENT_ID
+        clientSecret: REPLACE_CLIENT_SECRET
+        signIn:
+          resolvers:
+            - resolver: usernameMatchingUserEntityName

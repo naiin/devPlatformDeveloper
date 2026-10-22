@@ -1,0 +1,9 @@
+**
+!Dockerfile
+!app/
+!app/**
+!scripts/
+!scripts/release.py
+app/**/__pycache__/
+app/.pytest_cache/
+app/.ruff_cache/

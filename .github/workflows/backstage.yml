@@ -1,0 +1,38 @@
+name: Build Backstage
+on:
+  push:
+    branches: [main, feat/backstage]
+    paths: ['backstage/**', '.github/workflows/backstage.yml']
+  pull_request:
+    paths: ['backstage/**', '.github/workflows/backstage.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  portal:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    defaults:
+      run:
+        working-directory: backstage
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22.22.3'
+      - run: node .yarn/releases/yarn-4.13.0.cjs install --immutable
+      - run: node .yarn/releases/yarn-4.13.0.cjs tsc
+      - run: node .yarn/releases/yarn-4.13.0.cjs build:backend
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+      - run: docker build -f packages/backend/Dockerfile -t ghcr.io/naiin/devplatform-backstage:sha-${GITHUB_SHA} .
+      - name: Publish
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "$GH_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          docker push ghcr.io/naiin/devplatform-backstage:sha-${GITHUB_SHA}
