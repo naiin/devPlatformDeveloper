@@ -1,0 +1,20 @@
+environment: staging
+image:
+  repository: ghcr.io/naiin/devplatformdeveloper-api
+  tag: pending
+  digest: ""
+api:
+  replicas: 1
+worker:
+  replicas: 1
+existingSecret: platform-credentials
+storageClass: local-path
+postgres:
+  image: postgres:17-bookworm@sha256:858bb5e98eed02eb8cafbcdc007f9a65d1b613972028944a8ec2133ccaf80d27
+  size: 2Gi
+redis:
+  image: redis:8-alpine@sha256:615b4cedaff0c1437a1548acae4222572df8c021eeb7382d64cb8b5e3a13ac7a
+  size: 1Gi
+ingress:
+  host: demo.talos.test
+  path: /api/staging

@@ -1,0 +1,16 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ${{ values.name }}
+  description: ${{ values.description | dump }}
+  annotations:
+    github.com/project-slug: naiin/${{ values.name }}
+    backstage.io/kubernetes-id: ${{ values.name }}
+  links:
+    - url: http://demo.talos.test/services/${{ values.name }}/docs
+      title: Staging API
+spec:
+  type: service
+  lifecycle: experimental
+  owner: group:default/platform-team
+  system: devplatform

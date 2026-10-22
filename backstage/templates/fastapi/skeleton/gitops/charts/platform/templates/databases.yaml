@@ -1,0 +1,137 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: platform-postgres
+spec:
+  selector:
+    app: platform-postgres
+  ports:
+    - port: 5432
+      name: postgres
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: platform-redis
+spec:
+  selector:
+    app: platform-redis
+  ports:
+    - port: 6379
+      name: redis
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: platform-postgres
+spec:
+  serviceName: platform-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: platform-postgres
+  template:
+    metadata:
+      labels:
+        app: platform-postgres
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: postgres
+          image: {{ .Values.postgres.image }}
+          securityContext:
+            {{- include "platform.security" . | nindent 12 }}
+          env:
+            - name: POSTGRES_USER
+              value: platform
+            - name: POSTGRES_DB
+              value: platform
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.existingSecret }}
+                  key: POSTGRES_PASSWORD
+          ports:
+            - containerPort: 5432
+              name: postgres
+          readinessProbe:
+            exec:
+              command: [pg_isready, -U, platform, -d, platform]
+          livenessProbe:
+            exec:
+              command: [pg_isready, -U, platform, -d, platform]
+            initialDelaySeconds: 30
+          resources:
+            requests: {cpu: 50m, memory: 128Mi}
+            limits: {memory: 384Mi}
+          volumeMounts:
+            - {name: data, mountPath: /var/lib/postgresql/data}
+            - {name: run, mountPath: /var/run/postgresql}
+            - {name: tmp, mountPath: /tmp}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: platform-postgres
+        - name: run
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: platform-redis
+spec:
+  serviceName: platform-redis
+  replicas: 1
+  selector:
+    matchLabels:
+      app: platform-redis
+  template:
+    metadata:
+      labels:
+        app: platform-redis
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: redis
+          image: {{ .Values.redis.image }}
+          args: [redis-server, --appendonly, "yes", --requirepass, "$(REDIS_PASSWORD)"]
+          securityContext:
+            {{- include "platform.security" . | nindent 12 }}
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.existingSecret }}
+                  key: REDIS_PASSWORD
+          ports:
+            - {containerPort: 6379, name: redis}
+          readinessProbe:
+            exec:
+              command: [sh, -c, 'REDISCLI_AUTH="$REDIS_PASSWORD" redis-cli ping']
+          resources:
+            requests: {cpu: 25m, memory: 32Mi}
+            limits: {memory: 128Mi}
+          volumeMounts:
+            - {name: data, mountPath: /data}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: platform-redis

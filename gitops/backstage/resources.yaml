@@ -1,0 +1,224 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: backstage
+  labels:
+    pod-security.kubernetes.io/enforce: restricted
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: backstage-postgres
+  namespace: backstage
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backstage
+  namespace: backstage
+spec:
+  selector:
+    app: backstage
+  ports:
+  - port: 7007
+    targetPort: 7007
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backstage-postgres
+  namespace: backstage
+spec:
+  selector:
+    app: backstage-postgres
+  ports:
+  - port: 5432
+    targetPort: 5432
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: backstage-postgres
+  namespace: backstage
+spec:
+  serviceName: backstage-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backstage-postgres
+  template:
+    metadata:
+      labels:
+        app: backstage-postgres
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: postgres
+        image: postgres:17-bookworm@sha256:858bb5e98eed02eb8cafbcdc007f9a65d1b613972028944a8ec2133ccaf80d27
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        env:
+        - name: POSTGRES_USER
+          value: backstage
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: backstage-credentials
+              key: POSTGRES_PASSWORD
+        ports:
+        - containerPort: 5432
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - backstage
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            memory: 384Mi
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/postgresql/data
+        - name: run
+          mountPath: /var/run/postgresql
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: backstage-postgres
+      - name: run
+        emptyDir: {}
+      - name: tmp
+        emptyDir: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backstage
+  namespace: backstage
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: backstage
+  template:
+    metadata:
+      labels:
+        app: backstage
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: backstage
+        image: ghcr.io/naiin/devplatformdeveloper-api@sha256:95c640a65fb83dec70bd3ca1e80b0362869e88a3a54b7093ecc5fc91d7fba294
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        ports:
+        - containerPort: 7007
+        envFrom:
+        - secretRef:
+            name: backstage-credentials
+        env:
+        - name: POSTGRES_HOST
+          value: backstage-postgres
+        - name: NODE_OPTIONS
+          value: --max-old-space-size=768
+        startupProbe:
+          httpGet:
+            path: /.backstage/health/v1/readiness
+            port: 7007
+          periodSeconds: 5
+          failureThreshold: 60
+        readinessProbe:
+          httpGet:
+            path: /.backstage/health/v1/readiness
+            port: 7007
+        resources:
+          requests:
+            cpu: 100m
+            memory: 512Mi
+          limits:
+            memory: 1200Mi
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: github
+          mountPath: /secrets
+          readOnly: true
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: github
+        secret:
+          secretName: backstage-github
+          defaultMode: 288
+      automountServiceAccountToken: false
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: backstage-strip
+  namespace: backstage
+spec:
+  stripPrefix:
+    prefixes:
+    - /backstage
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: backstage
+  namespace: backstage
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: backstage-backstage-strip@kubernetescrd
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: demo.talos.test
+    http:
+      paths:
+      - path: /backstage
+        pathType: Prefix
+        backend:
+          service:
+            name: backstage
+            port:
+              number: 7007

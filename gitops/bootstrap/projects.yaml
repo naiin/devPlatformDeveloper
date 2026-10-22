@@ -29,7 +29,7 @@ metadata:
 spec:
   description: Staging workloads with automatic sync, pruning, and self-healing.
   sourceRepos:
-    - https://github.com/naiin/devPlatformDeveloper.git
+    - https://github.com/naiin/*.git
   destinations:
     - server: https://kubernetes.default.svc
       namespace: staging-*

@@ -1,0 +1,58 @@
+app:
+  title: DevPlatform
+  baseUrl: http://demo.talos.test/backstage
+  packages: all
+  extensions:
+    - page:catalog:
+        config:
+          path: /
+organization:
+  name: DevPlatform
+backend:
+  baseUrl: http://demo.talos.test/backstage
+  listen: ':7007'
+  cors:
+    origin: http://demo.talos.test
+    credentials: true
+  database:
+    client: pg
+    connection:
+      host: ${POSTGRES_HOST}
+      port: 5432
+      user: backstage
+      password: ${POSTGRES_PASSWORD}
+  csp:
+    upgrade-insecure-requests: false
+    connect-src: ["'self'", 'http:', 'https:']
+  reading:
+    allow:
+      - host: github.com
+      - host: raw.githubusercontent.com
+integrations:
+  github:
+    - host: github.com
+auth:
+  environment: production
+  providers:
+    guest:
+      dangerouslyAllowOutsideDevelopment: true
+      userEntityRef: user:default/visitor
+      ownershipEntityRefs: []
+permission:
+  enabled: true
+catalog:
+  rules:
+    - allow: [Component, System, API, Resource, Location, User, Group, Template]
+  locations:
+    - type: file
+      target: ./catalog/entities.yaml
+    - type: file
+      target: ./templates/fastapi/template.yaml
+scaffolder:
+  defaultAuthor:
+    name: DevPlatform Backstage
+    email: backstage@devplatform.local
+techdocs:
+  builder: external
+  publisher:
+    type: local

@@ -1,0 +1,82 @@
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  name: naiin
+spec:
+  profile:
+    displayName: Platform owner
+  memberOf: [platform-team]
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: platform-team
+spec:
+  type: team
+  children: []
+  members: [naiin]
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: devplatform
+spec:
+  owner: platform-team
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: platform-api
+  annotations:
+    github.com/project-slug: naiin/devPlatformDeveloper
+  links:
+    - url: http://demo.talos.test/api/staging/docs
+      title: Staging API
+    - url: http://demo.talos.test/argocd/
+      title: Argo CD
+spec:
+  type: service
+  lifecycle: experimental
+  owner: platform-team
+  system: devplatform
+  dependsOn: [resource:default/platform-postgresql, resource:default/platform-redis]
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: platform-postgresql
+spec:
+  type: database
+  owner: platform-team
+  system: devplatform
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: platform-redis
+spec:
+  type: cache
+  owner: platform-team
+  system: devplatform
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: backstage
+  annotations:
+    github.com/project-slug: naiin/devPlatformDeveloper
+spec:
+  type: website
+  lifecycle: experimental
+  owner: platform-team
+  system: devplatform
+  dependsOn: [resource:default/backstage-postgresql]
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: backstage-postgresql
+spec:
+  type: database
+  owner: platform-team
+  system: devplatform

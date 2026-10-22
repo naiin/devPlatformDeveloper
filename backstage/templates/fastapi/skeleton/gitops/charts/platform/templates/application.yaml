@@ -1,0 +1,96 @@
+{{- range $role := list "api" "worker" }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: platform-{{ $role }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  replicas: {{ (index $.Values $role).replicas }}
+  selector:
+    matchLabels:
+      app: platform-{{ $role }}
+  template:
+    metadata:
+      labels:
+        app: platform-{{ $role }}
+        app.kubernetes.io/version: {{ $.Values.image.tag | quote }}
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: {{ $role }}
+          image: {{ include "platform.image" $ }}
+          {{- if eq $role "worker" }}
+          command: [python, -m, platform_app.worker]
+          readinessProbe:
+            exec:
+              command:
+                - python
+                - -c
+                - "import time,socket; from platform_app.queue import redis_client; value=redis_client().get('platform:worker:'+socket.gethostname()+':heartbeat') or '0'; assert time.time()-float(value)<20"
+            initialDelaySeconds: 5
+          {{- else }}
+          ports:
+            - {containerPort: 8000, name: http}
+          readinessProbe:
+            httpGet: {path: /health/ready, port: http}
+          livenessProbe:
+            httpGet: {path: /health/live, port: http}
+          {{- end }}
+          securityContext:
+            {{- include "platform.security" $ | nindent 12 }}
+          envFrom:
+            - secretRef:
+                name: {{ $.Values.existingSecret }}
+          env:
+            - name: ROOT_PATH
+              value: {{ $.Values.ingress.path | quote }}
+          resources:
+            requests: {cpu: 50m, memory: 64Mi}
+            limits: {memory: 256Mi}
+{{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: platform-api
+spec:
+  selector: {app: platform-api}
+  ports:
+    - {port: 80, targetPort: http, name: http}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: platform-strip
+spec:
+  stripPrefix:
+    prefixes:
+      - {{ .Values.ingress.path | quote }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: platform-api
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: {{ printf "%s-platform-strip@kubernetescrd" .Release.Namespace }}
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: {{ .Values.ingress.host }}
+      http:
+        paths:
+          - path: {{ .Values.ingress.path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: platform-api
+                port:
+                  name: http
