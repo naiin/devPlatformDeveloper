@@ -1,8 +1,8 @@
 environment: staging
 image:
   repository: ghcr.io/naiin/devplatformdeveloper-api
-  tag: v0.1.2
-  digest: sha256:c7295d1ad30abfa1aa3ae7aaf323109e162a2e03665db61ba192ed389046aeae
+  tag: v0.1.9
+  digest: sha256:addf54b0fd39247d709318db2fcf97b4303f64efbb33b76ebf4ab2e6c8b444b1
 api:
   replicas: 1
 worker:
