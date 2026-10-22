@@ -150,3 +150,7 @@ Sources: [Talos VirtualBox installation](https://docs.siderolabs.com/talos/v1.14
 [Talos Terraform provider](https://registry.terraform.io/providers/siderolabs/talos/0.12.0/docs),
 [MetalLB installation](https://metallb.io/installation/),
 [Traefik Kubernetes setup](https://doc.traefik.io/traefik/setup/kubernetes/).
+
+## Developer portal
+
+Backstage is available at [http://demo.talos.test/backstage/](http://demo.talos.test/backstage/), with its own PostgreSQL database and the **Create FastAPI Microservice** template. See [portal setup](backstage/README.md) and [verification evidence](docs/backstage-proof.md). Install your GitHub App credentials locally with `python3 scripts/backstage-github-setup.py` to enable repository creation and protected GitOps onboarding PRs.
