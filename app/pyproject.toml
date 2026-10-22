@@ -1,0 +1,20 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+cache_dir = "/tmp/devplatform-pytest"
+markers = ["integration: requires PostgreSQL and Redis"]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+cache-dir = "/tmp/devplatform-ruff"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.coverage.run]
+source = ["platform_app"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true

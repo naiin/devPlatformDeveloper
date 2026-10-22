@@ -1,0 +1,32 @@
+name: devplatform-tests
+services:
+  postgres:
+    image: postgres:17-bookworm@sha256:858bb5e98eed02eb8cafbcdc007f9a65d1b613972028944a8ec2133ccaf80d27
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test-only
+      POSTGRES_DB: platform_test
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U test -d platform_test"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  redis:
+    image: redis:8-alpine@sha256:615b4cedaff0c1437a1548acae4222572df8c021eeb7382d64cb8b5e3a13ac7a
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  tests:
+    build:
+      context: .
+      target: test
+    environment:
+      DATABASE_URL: postgresql+psycopg://test:test-only@postgres:5432/platform_test
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy

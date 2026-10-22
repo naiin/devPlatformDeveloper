@@ -42,7 +42,6 @@ spec:
           allowEmpty: false
         syncOptions:
           - CreateNamespace=true
-          - ApplyOutOfSyncOnly=true
         managedNamespaceMetadata:
           labels:
             pod-security.kubernetes.io/enforce: restricted

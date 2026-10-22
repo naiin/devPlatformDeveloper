@@ -1,0 +1,33 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: platform-migrate
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+spec:
+  backoffLimit: 3
+  activeDeadlineSeconds: 180
+  template:
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: migrate
+          image: {{ include "platform.image" . }}
+          command: [alembic, upgrade, head]
+          securityContext:
+            {{- include "platform.security" . | nindent 12 }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.existingSecret }}
+          resources:
+            requests: {cpu: 25m, memory: 64Mi}
+            limits: {memory: 256Mi}

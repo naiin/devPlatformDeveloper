@@ -1,0 +1,12 @@
+environment: staging
+image:
+  repository: ghcr.io/naiin/devplatformdeveloper-api
+  tag: pending
+  digest: ""
+api:
+  replicas: 1
+worker:
+  replicas: 1
+ingress:
+  host: demo.talos.test
+  path: /api/staging
