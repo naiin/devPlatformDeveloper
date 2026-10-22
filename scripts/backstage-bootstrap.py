@@ -32,7 +32,7 @@ def main():
         if 'REPLACE_' in config:
             parser.error('Complete the private GitHub App config before installing it')
     else:
-        config = '{}\n'
+        config = 'integrations:\n  github:\n    - host: github.com\n'
     existing = subprocess.run([K,'-n','backstage','get','secret','backstage-github'],capture_output=True).returncode == 0
     if args.github_config or not existing:
         call('apply','-f','-', data={'apiVersion':'v1','kind':'Secret','metadata':{'name':'backstage-github','namespace':'backstage'},
