@@ -2,6 +2,10 @@ app:
   title: DevPlatform
   baseUrl: http://demo.talos.test/backstage
   packages: all
+  extensions:
+    - page:catalog:
+        config:
+          path: /
 organization:
   name: DevPlatform
 backend:
@@ -18,6 +22,7 @@ backend:
       user: backstage
       password: ${POSTGRES_PASSWORD}
   csp:
+    upgrade-insecure-requests: false
     connect-src: ["'self'", 'http:', 'https:']
   reading:
     allow:
