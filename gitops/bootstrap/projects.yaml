@@ -39,6 +39,14 @@ spec:
   namespaceResourceWhitelist:
     - group: apps
       kind: Deployment
+    - group: apps
+      kind: StatefulSet
+    - group: batch
+      kind: Job
+    - group: ""
+      kind: PersistentVolumeClaim
+    - group: traefik.io
+      kind: Middleware
     - group: ""
       kind: Service
     - group: ""
@@ -66,6 +74,14 @@ spec:
   namespaceResourceWhitelist:
     - group: apps
       kind: Deployment
+    - group: apps
+      kind: StatefulSet
+    - group: batch
+      kind: Job
+    - group: ""
+      kind: PersistentVolumeClaim
+    - group: traefik.io
+      kind: Middleware
     - group: ""
       kind: Service
     - group: ""

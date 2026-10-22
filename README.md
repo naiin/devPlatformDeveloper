@@ -4,6 +4,10 @@ Local Talos Kubernetes on VirtualBox with Argo CD GitOps. See
 [the GitOps workflow](gitops/README.md) for bootstrap, staging/production
 policies, Helm values, promotion, and the reconciliation demonstration.
 
+The [FastAPI application and release pipeline](app/README.md) adds Redis-backed
+jobs, PostgreSQL persistence, tested GHCR images, promotion PRs, required release
+approval, and rollback to an immutable approved Git revision.
+
 Terraform creates one control plane and three workers using the official
 `siderolabs/talos` provider. A small, ownership-checked `VBoxManage` adapter
 creates the VirtualBox VMs and their dedicated host-only network. All VM disks

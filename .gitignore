@@ -8,4 +8,10 @@ crash.log
 vms/
 generated/
 __pycache__/
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+junit*.xml
+*.egg-info/
 

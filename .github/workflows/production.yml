@@ -1,0 +1,48 @@
+name: Approved production release or rollback
+on:
+  push:
+    branches: [main]
+    paths: ['releases/production/candidate.json']
+  workflow_dispatch:
+    inputs:
+      rollback_revision:
+        description: 'Previously approved immutable Git SHA; leave empty to release the merged candidate'
+        required: false
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: production-release
+  cancel-in-progress: false
+jobs:
+  release:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    environment:
+      name: production
+      url: http://demo.talos.test/api/production/docs
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.13'
+      - run: pip install --require-hashes -r app/requirements-dev.lock
+      - name: Commit approved immutable deployment revision
+        env:
+          ROLLBACK_REVISION: ${{ inputs.rollback_revision }}
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          if [ -n "$ROLLBACK_REVISION" ]; then
+            python scripts/release.py rollback --revision "$ROLLBACK_REVISION" --run-url "$run_url"
+          else
+            python scripts/release.py approve --run-url "$run_url" --candidate-ref "$GITHUB_SHA"
+          fi
+          git pull --rebase origin main
+          git push origin HEAD:main

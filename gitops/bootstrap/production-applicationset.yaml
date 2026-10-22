@@ -25,7 +25,7 @@ spec:
       project: production
       source:
         repoURL: https://github.com/naiin/devPlatformDeveloper.git
-        targetRevision: main
+        targetRevision: '{{ default "main" (get . "revision") }}'
         path: '{{.chartPath}}'
         helm:
           releaseName: '{{.name}}'
@@ -38,7 +38,6 @@ spec:
       syncPolicy:
         syncOptions:
           - CreateNamespace=true
-          - ApplyOutOfSyncOnly=true
         managedNamespaceMetadata:
           labels:
             pod-security.kubernetes.io/enforce: restricted
@@ -49,6 +48,18 @@ spec:
             duration: 5s
             factor: 2
             maxDuration: 1m
+  templatePatch: |
+    {{- if eq (toString (get . "autoSync")) "true" }}
+    {{- if not (regexMatch "^[0-9a-f]{40}$" (get . "revision")) }}
+    {{- fail "Automatic production sync requires an approved immutable Git SHA" }}
+    {{- end }}
+    spec:
+      syncPolicy:
+        automated:
+          enabled: true
+          prune: true
+          selfHeal: true
+    {{- end }}
   syncPolicy:
     preserveResourcesOnDeletion: true
 
