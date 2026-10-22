@@ -1,6 +1,8 @@
 # Argo CD GitOps
 
 Git repository: https://github.com/naiin/devPlatformDeveloper, branch `main`.
+The [FastAPI release pipeline](../app/README.md) extends this setup with an
+approval-gated, immutable production snapshot; see [observed release proof](../docs/application-proof.md).
 Argo reads this public repository over HTTPS; no Git credentials or cluster
 secrets are committed. Pushes use your workstation's existing SSH authentication.
 
@@ -53,14 +55,16 @@ gitops/
 | --- | --- | --- | --- |
 | Bootstrap | Automatically applies | Automatically repairs | Enabled within root application |
 | Staging | Automatically applies | Automatically repairs | Enabled within application |
-| Production | Shows OutOfSync; explicit sync required | Shows OutOfSync; retained until explicit sync | Only during explicit sync with pruning |
+| Production hello demo | Shows OutOfSync; explicit sync required | Shows OutOfSync; retained until explicit sync | Only during explicit sync with pruning |
+| Production platform service | Deploys only an immutable revision activated after GitHub environment approval | Repairs drift against that approved revision | Within the approved application; PVCs are retained |
 
 Repository polling runs roughly every 30–35 seconds. ApplicationSet Git
 generators poll every 30 seconds. Automatic self-healing uses a 10-second retry
 interval. Kubernetes watch events can detect drift sooner than polling.
 
 The projects restrict deployment to `staging-*` and `production-*` namespaces
-and an explicit resource allowlist. The bootstrap project can manage AppProjects
+and an explicit resource allowlist, including the platform's StatefulSets,
+PVCs, migration Jobs, and ingress Middleware. The bootstrap project can manage AppProjects
 and ApplicationSets only in `argocd`. Generated Applications preserve workloads
 if their ApplicationSet entry is removed: deletion is intentionally a separate,
 reviewed operation. A production Application is not an approval system by
