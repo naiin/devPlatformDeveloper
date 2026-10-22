@@ -1,0 +1,7 @@
+{
+  "image": "ghcr.io/naiin/devplatformdeveloper-api",
+  "digest": "sha256:c7295d1ad30abfa1aa3ae7aaf323109e162a2e03665db61ba192ed389046aeae",
+  "version": "v0.1.2",
+  "source": "5c8d507f4fa99707741121c724b9220d20d9d044",
+  "build_url": "https://github.com/naiin/devPlatformDeveloper/actions/runs/39761053052"
+}
