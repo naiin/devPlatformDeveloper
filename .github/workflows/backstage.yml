@@ -36,3 +36,7 @@ jobs:
         run: |
           echo "$GH_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
           docker push ghcr.io/naiin/devplatform-backstage:sha-${GITHUB_SHA}
+          # The existing lab package is already public, allowing anonymous node pulls.
+          # Keep a distinct tag so application release tags remain separate.
+          docker tag ghcr.io/naiin/devplatform-backstage:sha-${GITHUB_SHA} ghcr.io/naiin/devplatformdeveloper-api:backstage-${GITHUB_SHA}
+          docker push ghcr.io/naiin/devplatformdeveloper-api:backstage-${GITHUB_SHA}

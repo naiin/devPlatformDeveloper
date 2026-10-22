@@ -4,7 +4,7 @@ Official Backstage application generated with `@backstage/create-app@0.9.3`, rel
 
 ## GitHub setup
 
-Create a GitHub App at https://github.com/settings/apps/new, owned by `naiin`.
+Create a GitHub App owned by `naiin` using [this prefilled setup page](https://github.com/settings/apps/new?name=naiin-devplatform-backstage&url=http%3A%2F%2Fdemo.talos.test%2Fbackstage&description=DevPlatform+service+scaffolding+and+reviewed+GitOps+onboarding&callback_urls%5B%5D=http%3A%2F%2Fdemo.talos.test%2Fbackstage%2Fapi%2Fauth%2Fgithub%2Fhandler%2Fframe&public=false&webhook_active=false&administration=write&contents=write&workflows=write&pull_requests=write). Review the requested permissions before creating it.
 
 - Homepage: `http://demo.talos.test/backstage`
 - Callback: `http://demo.talos.test/backstage/api/auth/github/handler/frame`
@@ -35,4 +35,4 @@ Production onboarding is deliberately separate: this template activates staging 
 - Credential creation has only Kubernetes `create` permission for namespaces and secrets, without read/update/delete. The action validates names, creates a new namespace first, and fails on existing namespaces rather than adopting or replacing credentials. Kubernetes RBAC cannot restrict dynamically created namespace names; the authenticated portal is a trusted platform provisioner.
 - A failed task can leave a repository or namespace. Retry with a fresh service name after inspecting the task; clean partial resources intentionally. Task execution across GitHub/Kubernetes is not transactional.
 - The template preserves the tested application package name `platform_app`; the repository, image, namespace, URL, and catalog identity are customized.
-- Build: `cd backstage && node .yarn/releases/yarn-4.13.0.cjs install --immutable && node .yarn/releases/yarn-4.13.0.cjs tsc && node .yarn/releases/yarn-4.13.0.cjs build:backend`. Hosted CI publishes the portal image; deployment pins its digest.
+- Build: `cd backstage && node .yarn/releases/yarn-4.13.0.cjs install --immutable && node .yarn/releases/yarn-4.13.0.cjs tsc && node .yarn/releases/yarn-4.13.0.cjs build:backend`. Hosted CI publishes the portal image and a `backstage-SHA` mirror in the existing public lab GHCR package (`devplatformdeveloper-api`), so lab nodes can pull anonymously. Deployment pins the mirror digest. New generated service packages still need to be made public once or supplied with a pull secret.

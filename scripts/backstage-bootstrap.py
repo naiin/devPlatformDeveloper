@@ -20,7 +20,7 @@ def main():
     parser.add_argument('--github-config', type=Path, help='Private local GitHub App YAML; never commit it')
     args = parser.parse_args()
     import re
-    if not re.fullmatch(r'ghcr.io/naiin/devplatform-backstage@sha256:[0-9a-f]{64}', args.image):
+    if not re.fullmatch(r'ghcr.io/naiin/(devplatform-backstage|devplatformdeveloper-api)@sha256:[0-9a-f]{64}', args.image):
         parser.error('Provide the immutable published portal image digest')
     call('apply', '-f', '-', data={'apiVersion':'v1','kind':'Namespace','metadata':{'name':'backstage','labels':{'pod-security.kubernetes.io/enforce':'restricted'}}})
     exists = subprocess.run([K,'-n','backstage','get','secret','backstage-credentials'],capture_output=True).returncode == 0
